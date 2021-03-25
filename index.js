@@ -1,8 +1,32 @@
 const connection = require('./database/connect');
 const inquirer = require("inquirer");
+const cTable = require('console.table');
+const query = require("./database/query");
+const DBquery = new query();
+
 var db = require('./database/connect');
 var choice = 
 ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name", "Delete Department",  "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
+
+const startAgain = () => {
+    inquirer.prompt([ 
+     {
+         name: "YESorNo",
+         type: "list",
+         message: "Do you want to start again?",
+         choices: ["YES", "NO"]
+     }
+     ])
+    .then(function(answer){
+     console.log(choice);
+        if (answer.YESorNo == "YES") {
+            start(); 
+        }    
+         else {
+            connection.end();
+         }
+    }); 
+ };
 
 const start = () => {
    inquirer.prompt([ 
@@ -22,8 +46,10 @@ const start = () => {
        } else if (answer.choice == "View All Employee by Manager") {
 
         }else if (answer.choice == "View All Roles") {
+            getAllRoles();
 
         } else if (answer.choice == "View All Department"){
+            getAllDepartment();
 
         } else if (answer.choice == "Add Employee"){
             
@@ -34,13 +60,13 @@ const start = () => {
         }else if (answer.choice == "Update Employee Manager"){
             
         }else if (answer.choice == "Add Department"){
-            console.log("inn");
             addDepartment();
         }else if (answer.choice == "Update Department Name"){
             
         }else if (answer.choice == "Delete Department"){
             
         } else if (answer.choice == "Add Roles"){
+            addRoles();
             
         } else if (answer.choice == "Delete Role"){
             
@@ -61,14 +87,13 @@ const addDepartment = () => {
     }
     ])
    .then(function(answer){
-    console.log('Insert new Role.. \n');
+    console.log('Insert new Department.. \n');
     const query = connection.query('INSERT INTO EmployeeDB.department (department_name) VALUES (?)',
       [answer.departmentName],
       (err, res) => {
         if (err) throw err;
-        console.log(`product inserted!\n`);
-        start();
-
+            console.log(`DEPARTMENT ADDED !\n`);
+            startAgain();
       }
     );
   
@@ -76,6 +101,67 @@ const addDepartment = () => {
     console.log(query.sql);
     }); 
 };
+
+async function getAllDepartment() {
+
+    await DBquery.getAllDepartments().then(res=>{
+        console.table(res);
+        startAgain();
+    });
+}
+
+
+async function addRoles()  {
+
+    let departments;
+    let departmentNames;
+    await DBquery.getAllDepartments().then(res=>{
+        departmentNames = res.map(e=>e.department_name);
+        departments = res;
+    });
+    inquirer
+        .prompt([
+        {
+                name: 'title',
+                type: 'input',
+                message: 'Please Enter Role Title: ',
+        },
+        {
+            name: 'salary',
+            type: 'input',
+            message: 'Please Enter Role Salary: ',
+        },
+        {
+            name: 'choice',
+            type: 'rawlist',
+            choices: departmentNames,
+            message: 'Please Select Department: ',
+        }
+        ])
+        .then(async (answer) => {
+            console.log(departments.find(e=>e.department_name === answer.choice));
+
+            let newRole = {
+                title: answer.title,
+                salary: answer.salary,
+                departmentid: departments.find(e=>e.department_name === answer.choice).department_id
+            }
+            await DBquery.addRole(newRole).then(res=>{
+                startAgain();
+            });
+
+        });
+ 
+  };
+
+
+async function getAllRoles(){
+    await DBquery.getAllRoles().then(res=>{
+        console.table(res);
+        startAgain();
+    });
+};
+
 
 /*
 const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {

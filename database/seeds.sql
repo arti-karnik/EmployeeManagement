@@ -28,3 +28,11 @@ INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('ANNA', 
 INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('ABHIJEET', 'MOKAKSHI', 1, 4);
 
 UPDATE employee SET roleId = 2 WHERE id= 1;
+
+/* VIEW ALL DEPARTMENT */
+SELECT * FROM DEPARTMENT
+
+/* VIEW ALL ROLES */
+
+SELECT EmployeeDB.role.roleID, EmployeeDB.role.title, EmployeeDB.role.salary, EmployeeDB.department.department_name FROM EmployeeDB.role 
+INNER JOIN EmployeeDB.department ON EmployeeDB.role.departmentid = EmployeeDB.department.department_id;
