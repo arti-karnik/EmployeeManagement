@@ -5,6 +5,7 @@ const query = require("./database/query");
 const DBquery = new query();
 
 var db = require('./database/connect');
+const role = require('./class/role');
 var choice = 
 ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name", "Delete Department",  "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 
@@ -40,7 +41,7 @@ const start = () => {
    .then(function(answer){
     console.log(choice);
        if (answer.choice == "View All Employees") {
-
+            getAllEmployees();
        } else if (answer.choice == "View All Employee by Department"){
 
        } else if (answer.choice == "View All Employee by Manager") {
@@ -52,6 +53,7 @@ const start = () => {
             getAllDepartment();
 
         } else if (answer.choice == "Add Employee"){
+            addEmployee();
             
         }else if (answer.choice == "Remove Employee"){
             
@@ -109,6 +111,13 @@ async function getAllDepartment() {
         startAgain();
     });
 }
+async function getAllEmployees() {
+
+    await DBquery.getAllEmployees().then(res=>{
+        console.table(res);
+        startAgain();
+    });
+}
 
 
 async function addRoles()  {
@@ -152,7 +161,7 @@ async function addRoles()  {
 
         });
  
-  };
+};
 
 
 async function getAllRoles(){
@@ -160,6 +169,66 @@ async function getAllRoles(){
         console.table(res);
         startAgain();
     });
+};
+
+async function addEmployee()  {
+
+    let roles;
+    let rolesName;
+    let manager;
+    let managerNames;
+
+    await DBquery.getAllRoles().then(res=>{
+        rolesName = res.map(e=>e.title);
+        roles = res;
+    });
+    await DBquery.getAllManagerName().then(res=>{
+        managerNames = res.map(e=>e.ManagerName);
+        manager = res;
+    });
+    inquirer
+        .prompt([
+        {
+                name: 'firstName',
+                type: 'input',
+                message: 'Please Enter First Name: ',
+        },
+        {
+            name: 'lastName',
+            type: 'input',
+            message: 'Please Enter Last Name: ',
+        },
+        {
+            name: 'roleTitle',
+            type: 'list',
+            choices: rolesName,
+            message: 'Please Select Role: ',
+        },
+        {
+            name: 'ManagerName',
+            type: 'list',
+            choices: managerNames,
+            message: 'Please Select Manager: ',
+        }
+        ])
+        .then(async (answer) => {
+            let newEmployee = {
+                first_name: answer.firstName,
+                last_name: answer.lastName,
+                roleId: roles.find(e=>e.title === answer.roleTitle).roleID,
+                manageriD: manager.find(e=>e.ManagerName === answer.ManagerName).id
+            }
+           console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
+           console.log(roles.find(e=>e.title === answer.roleTitle).roleID);
+            console.log(newEmployee);
+
+            await DBquery.addEmployee(newEmployee)
+                .then(res=>{
+                    console.log("EMPLOYEE INSERTED");
+                    startAgain();
+                });
+        });
+ 
 };
 
 
