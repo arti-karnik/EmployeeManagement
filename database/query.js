@@ -6,9 +6,17 @@ class query {
 
     async getAllManagerName(){
         return new Promise((resolve,reject)=>{ 
-            let query = 'SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee where id in (SELECT distinct managerID FROM EmployeeDB.employee where (managerID != "" || managerID != NULL));';
+            let query = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
             connection.query(query, (err,res)=>{
                 if (err) throw err;
+                let noObject = {
+                    "id": "NULL",
+                    "ManagerName": "None",  
+                }
+                res.push(noObject);
+               
+                console.log(res);
+                console.log(res.length);
                 resolve(res);
             }); 
         });
@@ -158,6 +166,17 @@ class query {
     async updateEmployeeManager(empId, managerId){
         return new Promise((resolve,reject)=>{
             let query = `UPDATE EmployeeDB.employee SET managerID = ${managerId} WHERE id = ${empId};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                resolve(res);
+            });  
+        });
+    }
+
+    async deleteRole(roleID){
+        return new Promise((resolve,reject)=>{
+            let query = `delete from role where roleID = ${roleID};`;
             
             connection.query(query, (err,res)=>{
                 if (err) throw err;

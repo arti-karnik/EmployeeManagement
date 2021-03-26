@@ -68,3 +68,6 @@ on role.departmentid = department.department_id
  /* UPDATE EMPLOYEE MANAGER */
  UPDATE EmployeeDB.employee SET managerID = 8 WHERE id = 3;
 
+ /* Delete ROLE */
+ delete from role where roleID = 2;
+

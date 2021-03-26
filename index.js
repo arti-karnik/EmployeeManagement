@@ -3,6 +3,7 @@ const inquirer = require("inquirer");
 const cTable = require('console.table');
 const query = require("./database/query");
 const DBquery = new query();
+const confirm = require('inquirer-confirm')
 
 var db = require('./database/connect');
 const role = require('./class/role');
@@ -57,22 +58,19 @@ const start = () => {
             removeEmployee();
         }else if (answer.choice == "Update Employee Role"){
             updateEmployeeRole();
-            
         }else if (answer.choice == "Update Employee Manager"){
             updateEmployeeManager();
-            
         }else if (answer.choice == "Add Department"){
             addDepartment();
         }else if (answer.choice == "Update Department Name"){
             updateDepartment();
-            
         }else if (answer.choice == "Delete Department"){
             
         } else if (answer.choice == "Add Roles"){
             addRoles();
             
         } else if (answer.choice == "Delete Role"){
-            
+            deleteRole();
         }else if (answer.choice == "View the total utilized budget of a department"){
             getTotalBudgetByDepartment();
             
@@ -184,15 +182,22 @@ async function addEmployee()  {
         roles = res;
     });
     await DBquery.getAllManagerName().then(res=>{
-        managerNames = res.map(e=>e.ManagerName);
-        manager = res;
+        console.log(res);
+
+        if (res.length > 0 ) {
+            managerNames = res.map(e=>e.ManagerName);
+            manager = res;
+        } else {
+            manager = ["None"];
+            managerNames = ["None"];
+        }
     });
     inquirer
         .prompt([
         {
-                name: 'firstName',
-                type: 'input',
-                message: 'Please Enter First Name: ',
+            name: 'firstName',
+            type: 'input',
+            message: 'Please Enter First Name: ',
         },
         {
             name: 'lastName',
@@ -460,6 +465,45 @@ async function updateDepartment() {
         });
 
 }
+
+async function deleteRole()  {
+
+    let roles;
+    let rolesName;
+    await DBquery.getAllRoles().then(res=>{
+        rolesName = res.map(e=>e.title);
+        roles = res;
+    });
+    console.log(rolesName);
+    inquirer
+        .prompt([
+        {
+            name: 'role',
+            type: 'list',
+            message: 'Please Select Role ',
+            choices: rolesName
+        }
+        ])
+        .then(async (answer) => {
+            console.log(roles);
+
+            confirm({
+                question: 'Are you sure, you want to delete this Role? All associated employees and department will be delete. Press Y to confirm or N to Cancel', // 'Are you sure?' is default
+                default: false 
+              })
+              .then(async function confirmed() {
+                let roleid = roles.find(e=>e.title === answer.role).roleID;
+                console.log(roleid);
+                await DBquery.deleteRole(roleid)
+                .then(res=>{
+                    console.log("ROLE DELETED!!");
+                    startAgain();
+                });
+              }, function cancelled() {
+              });
+        });
+ 
+};
 
 /*
 const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {
