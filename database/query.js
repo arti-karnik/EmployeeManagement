@@ -73,11 +73,20 @@ class query {
         });
     }
 
+    async getAllEmployeesNames(){
+        return new Promise((resolve,reject)=>{          
+        let query = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                resolve(res);
+            }); 
+        });
+    }
+
     async getTotalSalaryByDepartment(departmentid, departmentName){
         return new Promise((resolve,reject)=>{          
-            
             let query = `SELECT SUM(salary) AS 'Total Budget : ${departmentName}' FROM employee LEFT JOIN role ON employee.roleid=role.roleid  WHERE role.departmentid = ${departmentid};`;
-            
             connection.query(query, (err,res)=>{
                 if (err) throw err;
                 console.log(res)
@@ -95,6 +104,31 @@ class query {
             connection.query(query, (err,res)=>{
                 if (err) throw err;
                 console.log(res)
+                resolve(res);
+            });    
+             
+        });
+    }
+    async getEmployeeByDepartment(departmentid){
+        return new Promise((resolve,reject)=>{          
+            
+            let query = `SELECT employee.first_name AS 'First Name' , employee.last_name AS 'Last Name', role.salary AS Salary, role.title, department.department_name FROM employee INNER JOIN role ON employee.roleid = role.roleid INNER JOIN department on role.departmentid = department.department_id where department.department_id = ${departmentid};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                console.log(res)
+                resolve(res);
+            });    
+             
+        });
+    }
+
+    async removeEmployee(empID){
+        return new Promise((resolve,reject)=>{
+            let query = `DELETE FROM EMPLOYEE WHERE ID = ${empID};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
                 resolve(res);
             });    
              

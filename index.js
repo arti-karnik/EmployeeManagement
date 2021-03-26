@@ -44,20 +44,17 @@ const start = () => {
        if (answer.choice == "View All Employees") {
             getAllEmployees();
        } else if (answer.choice == "View All Employee by Department"){
+            getAllEmployeesByDepartment();
        } else if (answer.choice == "View All Employee by Manager") {
-        getAllEmployeesByManager();
-
+            getAllEmployeesByManager();
         }else if (answer.choice == "View All Roles") {
             getAllRoles();
-
         } else if (answer.choice == "View All Department"){
             getAllDepartment();
-
         } else if (answer.choice == "Add Employee"){
             addEmployee();
-            
-        }else if (answer.choice == "Remove Employee"){
-            
+        } else if (answer.choice == "Remove Employee"){
+            removeEmployee();
         }else if (answer.choice == "Update Employee Role"){
             
         }else if (answer.choice == "Update Employee Manager"){
@@ -77,8 +74,7 @@ const start = () => {
             getTotalBudgetByDepartment();
             
         } else {
-        
-        connection.end();
+            connection.end();
         }
    }); 
 };
@@ -291,6 +287,63 @@ async function getAllEmployeesByManager()  {
         });
  
 };
+
+async function getAllEmployeesByDepartment()  {
+    let departments;
+    let departmentNames;
+    await DBquery.getAllDepartments().then(res=>{
+        departmentNames = res.map(e=>e.department_name);
+        departments = res;
+    });
+   inquirer
+       .prompt([
+       {
+           name: 'departmentName',
+           type: 'list',
+           choices: departmentNames,
+           message: 'Please Select Department: ',
+       }
+       ])
+       .then(async (answer) => {
+           
+            console.log(departments.find(e=>e.department_name === answer.departmentName).department_id);
+            let departmentId = departments.find(e=>e.department_name === answer.departmentName).department_id;
+
+           await DBquery.getEmployeeByDepartment(departmentId)
+               .then(res=>{
+                   console.table(res);
+                   startAgain();
+               });
+       });
+};
+
+async function removeEmployee() {
+    let employee, employeeName;
+
+    await DBquery.getAllEmployeesNames().then(res=>{
+        employeeName = res.map(e=>e.name);
+        employee = res;
+    });
+    inquirer
+        .prompt([
+        {
+            name: 'EmployeeName',
+            type: 'list',
+            choices: employeeName,
+            message: 'Please Select Employee: ',
+        }
+        ])
+        .then(async (answer) => {
+            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+
+            await DBquery.removeEmployee(EmployeeId)
+                .then(res=>{
+                    console.log("EMPLOYEE DELETED!!");
+                    startAgain();
+                });
+        });
+
+}
 
 /*
 const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {

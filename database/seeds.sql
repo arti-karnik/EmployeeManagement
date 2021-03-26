@@ -41,3 +41,20 @@ INNER JOIN EmployeeDB.department ON EmployeeDB.role.departmentid = EmployeeDB.de
 SELECT SUM(salary) AS 'Total Department Budget' FROM employee 
 LEFT JOIN role ON employee.roleid=role.roleid
 WHERE role.departmentid = 1;
+
+/* View All Employees by Manager */
+select employee.first_name, employee.last_name, role.salary, role.title, employee.managerid, department.department_name from Employee
+INNER join role 
+ON employee.roleid = role.roleid
+INNER join department 
+on role.departmentid = department.department_id
+ where managerid = 1;
+
+ /* VIEW ALL EMPLOYEES BY DEPARTMENT */
+ SELECT employee.first_name AS 'First Name' , employee.last_name AS 'Last Name', role.salary AS 'Salary', role.title AS 'Title', department.department_name AS 'Department Name' FROM employee INNER JOIN role ON employee.roleid = role.roleid INNER JOIN department on role.departmentid = department.department_id where department.department_id = 1;
+
+ /* DELETE EMPLOYEE FROM EMPLOYEE TABLE*/
+ DELETE FROM EMPLOYEE WHERE ID = 9;
+
+ /* GET ALL EMPLOYEES NAME */
+ SELECT ID, CONCAT( first_name," " , last_name) AS NAME FROM EMPLOYEE;
