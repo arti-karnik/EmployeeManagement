@@ -44,8 +44,8 @@ const start = () => {
        if (answer.choice == "View All Employees") {
             getAllEmployees();
        } else if (answer.choice == "View All Employee by Department"){
-
        } else if (answer.choice == "View All Employee by Manager") {
+        getAllEmployeesByManager();
 
         }else if (answer.choice == "View All Roles") {
             getAllRoles();
@@ -260,6 +260,37 @@ let departmentNames, departments;
            });
         });
 }
+
+async function getAllEmployeesByManager()  {
+     let manager;
+    let managerNames;
+
+    await DBquery.getAllManagerName().then(res=>{
+        managerNames = res.map(e=>e.ManagerName);
+        manager = res;
+    });
+    inquirer
+        .prompt([
+        {
+            name: 'ManagerName',
+            type: 'list',
+            choices: managerNames,
+            message: 'Please Select Manager: ',
+        }
+        ])
+        .then(async (answer) => {
+            
+           console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
+            let managerId = manager.find(e=>e.ManagerName === answer.ManagerName).id;
+
+            await DBquery.getEmployeeByManger(managerId)
+                .then(res=>{
+                    console.table(res);
+                    startAgain();
+                });
+        });
+ 
+};
 
 /*
 const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {

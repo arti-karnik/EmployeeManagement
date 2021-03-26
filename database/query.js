@@ -6,7 +6,7 @@ class query {
 
     async getAllManagerName(){
         return new Promise((resolve,reject)=>{ 
-            let query = 'SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee where id in (SELECT managerID FROM EmployeeDB.employee where (managerID != "" || managerID != NULL));';
+            let query = 'SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee where id in (SELECT distinct managerID FROM EmployeeDB.employee where (managerID != "" || managerID != NULL));';
             connection.query(query, (err,res)=>{
                 if (err) throw err;
                 resolve(res);
@@ -77,6 +77,20 @@ class query {
         return new Promise((resolve,reject)=>{          
             
             let query = `SELECT SUM(salary) AS 'Total Budget : ${departmentName}' FROM employee LEFT JOIN role ON employee.roleid=role.roleid  WHERE role.departmentid = ${departmentid};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                console.log(res)
+                resolve(res);
+            });    
+             
+        });
+    }
+
+    async getEmployeeByManger(managerID){
+        return new Promise((resolve,reject)=>{          
+            
+            let query = `select employee.first_name, employee.last_name, role.salary, role.title, department.department_name from Employee INNER join role  ON employee.roleid = role.roleid INNER join department  on role.departmentid = department.department_id where managerid = ${managerID};`;
             
             connection.query(query, (err,res)=>{
                 if (err) throw err;

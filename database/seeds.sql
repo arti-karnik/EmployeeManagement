@@ -36,3 +36,8 @@ SELECT * FROM DEPARTMENT
 
 SELECT EmployeeDB.role.roleID, EmployeeDB.role.title, EmployeeDB.role.salary, EmployeeDB.department.department_name FROM EmployeeDB.role 
 INNER JOIN EmployeeDB.department ON EmployeeDB.role.departmentid = EmployeeDB.department.department_id;
+
+/* View total budget by Department */
+SELECT SUM(salary) AS 'Total Department Budget' FROM employee 
+LEFT JOIN role ON employee.roleid=role.roleid
+WHERE role.departmentid = 1;
