@@ -134,5 +134,36 @@ class query {
              
         });
     }
+
+    async updateDepartment(departmentID, departmentName){
+        return new Promise((resolve,reject)=>{
+            let query = `UPDATE EmployeeDB.department SET department_name = '${departmentName}' WHERE department_id = ${departmentID};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                resolve(res);
+            });  
+        });
+    }
+    async updateEmployeeRole(empId, roleId){
+        return new Promise((resolve,reject)=>{
+            let query = `UPDATE EmployeeDB.employee SET roleID = ${roleId} WHERE id = ${empId};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                resolve(res);
+            });  
+        });
+    }
+    async updateEmployeeManager(empId, managerId){
+        return new Promise((resolve,reject)=>{
+            let query = `UPDATE EmployeeDB.employee SET managerID = ${managerId} WHERE id = ${empId};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                resolve(res);
+            });  
+        });
+    }
 }
 module.exports = query;

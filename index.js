@@ -56,12 +56,15 @@ const start = () => {
         } else if (answer.choice == "Remove Employee"){
             removeEmployee();
         }else if (answer.choice == "Update Employee Role"){
+            updateEmployeeRole();
             
         }else if (answer.choice == "Update Employee Manager"){
+            updateEmployeeManager();
             
         }else if (answer.choice == "Add Department"){
             addDepartment();
         }else if (answer.choice == "Update Department Name"){
+            updateDepartment();
             
         }else if (answer.choice == "Delete Department"){
             
@@ -339,6 +342,119 @@ async function removeEmployee() {
             await DBquery.removeEmployee(EmployeeId)
                 .then(res=>{
                     console.log("EMPLOYEE DELETED!!");
+                    startAgain();
+                });
+        });
+
+}
+async function  updateEmployeeRole() {
+    let employee, employeeName;
+    let rolesName, roles;
+
+    await DBquery.getAllRoles().then(res=>{
+        rolesName = res.map(e=>e.title);
+        roles = res;
+    });
+    await DBquery.getAllEmployeesNames().then(res=>{
+        employeeName = res.map(e=>e.name);
+        employee = res;
+    });
+    inquirer
+        .prompt([
+        {
+            name: 'EmployeeName',
+            type: 'list',
+            choices: employeeName,
+            message: 'Please Select Employee: ',
+        }, {
+            name: 'newRole',
+            type: 'list',
+            choices: rolesName,
+            message: 'Please Select New Role: ',
+        }
+        ])
+        .then(async (answer) => {
+            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+            let roleId = roles.find(e=>e.title === answer.newRole).roleID;
+
+            await DBquery.updateEmployeeRole(EmployeeId, roleId)
+                .then(res=>{
+                    console.log("EMPLOYEE ROLE UPDATED!!");
+                    startAgain();
+                });
+        });
+
+    
+}
+async function  updateEmployeeManager() {
+    let employee, employeeName;
+    let managerName, manager;
+
+    await DBquery.getAllManagerName().then(res=>{
+        managerName = res.map(e=>e.ManagerName);
+        manager = res;
+    });
+    await DBquery.getAllEmployeesNames().then(res=>{
+        employeeName = res.map(e=>e.name);
+        employee = res;
+    });
+    inquirer
+        .prompt([
+        {
+            name: 'EmployeeName',
+            type: 'list',
+            choices: employeeName,
+            message: 'Please Select Employee: ',
+        }, {
+            name: 'newManager',
+            type: 'list',
+            choices: managerName,
+            message: 'Please Select New Manager: ',
+        }
+        ])
+        .then(async (answer) => {
+            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+            let managerId = manager.find(e=>e.ManagerName === answer.newManager).id;
+            console.log(managerId, EmployeeId);
+            console.log(manager, employee);
+
+            await DBquery.updateEmployeeManager(EmployeeId, managerId)
+                .then(res=>{
+                    console.log("EMPLOYEE MANAGER UPDATED!!");
+                    startAgain();
+                });
+        });
+
+    
+}
+async function updateDepartment() {
+    let department, departmentName;
+
+    await DBquery.getAllDepartments().then(res=>{
+        departmentName = res.map(e=>e.department_name);
+        department = res;
+    });
+    inquirer
+        .prompt([
+        {
+            name: 'departmentName',
+            type: 'list',
+            choices: departmentName,
+            message: 'Please Select Department: ',
+        }, {
+            name: 'NewDepartmentName',
+            type: 'input',
+            message: 'Please Enter new name for this department: ',
+        }
+        ])
+        .then(async (answer) => {
+            let deptId = department.find(e=>e.department_name === answer.departmentName).department_id;
+            console.log(department);
+            console.log(deptId);
+
+            await DBquery.updateDepartment(deptId, answer.NewDepartmentName)
+                .then(res=>{
+                    console.log("DEPARTMENT UPDATED!!");
                     startAgain();
                 });
         });

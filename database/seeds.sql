@@ -58,3 +58,13 @@ on role.departmentid = department.department_id
 
  /* GET ALL EMPLOYEES NAME */
  SELECT ID, CONCAT( first_name," " , last_name) AS NAME FROM EMPLOYEE;
+
+ /* Update department name */
+ UPDATE EmployeeDB.department SET department_name = 'HUMAN RESOURCE' WHERE department_id = 1;
+
+ /* UPDATE EMPLOYEE ROLE */
+ UPDATE EmployeeDB.employee SET roleID = 6 WHERE id = 3;
+
+ /* UPDATE EMPLOYEE MANAGER */
+ UPDATE EmployeeDB.employee SET managerID = 8 WHERE id = 3;
+
