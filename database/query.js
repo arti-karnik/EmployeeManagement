@@ -1,3 +1,4 @@
+const department = require('../class/department');
 const connection = require('./connect');
 
 /* sQl connection query */
@@ -66,6 +67,20 @@ class query {
             
             connection.query(query, (err,res)=>{
                 if (err) throw err;
+                resolve(res);
+            });    
+             
+        });
+    }
+
+    async getTotalSalaryByDepartment(departmentid, departmentName){
+        return new Promise((resolve,reject)=>{          
+            
+            let query = `SELECT SUM(salary) AS 'Total Budget : ${departmentName}' FROM employee LEFT JOIN role ON employee.roleid=role.roleid  WHERE role.departmentid = ${departmentid};`;
+            
+            connection.query(query, (err,res)=>{
+                if (err) throw err;
+                console.log(res)
                 resolve(res);
             });    
              

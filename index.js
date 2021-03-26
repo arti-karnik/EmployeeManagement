@@ -6,6 +6,7 @@ const DBquery = new query();
 
 var db = require('./database/connect');
 const role = require('./class/role');
+const department = require('./class/department');
 var choice = 
 ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name", "Delete Department",  "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 
@@ -73,6 +74,7 @@ const start = () => {
         } else if (answer.choice == "Delete Role"){
             
         }else if (answer.choice == "View the total utilized budget of a department"){
+            getTotalBudgetByDepartment();
             
         } else {
         
@@ -231,6 +233,33 @@ async function addEmployee()  {
  
 };
 
+async function getTotalBudgetByDepartment() {
+let departmentNames, departments;
+
+    await DBquery.getAllDepartments().then(res=>{
+        departmentNames = res.map(e=>e.department_name);
+        departments = res;
+    });
+
+    inquirer
+        .prompt([
+        {
+            name: 'department',
+            type: 'list',
+            choices: departmentNames,
+            message: 'Please Select Department: ',
+        }
+        ])
+        .then(async (answer) => {
+           let deptID = departments.find(e=>e.department_name === answer.department).department_id;
+
+           await DBquery.getTotalSalaryByDepartment(deptID,answer.department)
+           .then(res=>{
+               console.table(res);
+               startAgain();
+           });
+        });
+}
 
 /*
 const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {
