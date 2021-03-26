@@ -1,35 +1,22 @@
 const connection = require('./database/connect');
+var figlet = require('figlet');
+
+
+var db = require('./database/connect');
 const inquirer = require("inquirer");
-const cTable = require('console.table');
 const query = require("./database/query");
 const DBquery = new query();
 const confirm = require('inquirer-confirm')
+const cTable = require('console.table');
+const { printTable } = require('console-table-printer');
 
-var db = require('./database/connect');
-const role = require('./class/role');
-const department = require('./class/department');
 var choice = 
 ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name",   "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 
-const startAgain = () => {
-    inquirer.prompt([ 
-        {
-            name: "YESorNo",
-            type: "list",
-            message: "Do you want to start again?",
-            choices: ["YES", "NO"]
-        }
-    ])
-    .then(function(answer){
-        console.log(choice);
-        if (answer.YESorNo == "YES") {
-            start(); 
-        }    
-        else {
-            connection.end();
-        }
-    }); 
-};
+const { text } = require('figlet');
+setTimeout(function() { start(); }, 500);
+
+console.log(figlet.textSync("Employee Tracker"));
 
 const start = () => {
     inquirer.prompt([ 
@@ -71,35 +58,31 @@ const start = () => {
         }else if (answer.choice == "View the total utilized budget of a department"){
             getTotalBudgetByDepartment();
         } else {
+            console.log("Thank you for using this application. Have a great day!");
             connection.end();
         }
     }); 
 };
 
-const addDepartment = () => {
-    inquirer.prompt([{
-        name: "departmentName",
-        type: "input",
-        message: "Please Enter Department Name: "
-    }
-])
-.then(function(answer){
-    console.log('Insert new Department.. \n');
-    
-    const query = connection.query('INSERT INTO EmployeeDB.department (department_name) VALUES (?)',
-    [answer.departmentName],
-    (err, res) => {
-        if (err) throw err;
-        console.log(`DEPARTMENT ADDED !\n`);
-        startAgain();
-    }
-    );
-    
-    // logs the actual query being run
-    console.log(query.sql);
-}); 
-};
+async function addDepartment() {
+    inquirer
+    .prompt([
+        {
+            name: 'departmentName',
+            type: 'input',
+            message: 'Please Enter Department Name: ',
+        }
+    ])
+    .then(async (answer) => {
+        let sql = `INSERT INTO EmployeeDB.department (department_name) VALUES ('${answer.departmentName}')`;
 
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.log("DEPARTMENT INSERTED...\n");
+            startAgain();
+        });
+    });
+}
 async function getAllDepartment() {
     await DBquery.execute('SELECT * FROM DEPARTMENT')
     .then(rows => {
@@ -108,11 +91,14 @@ async function getAllDepartment() {
     })
 }
 async function getAllEmployees() {
-    let sql = 'SELECT * FROM EMPLOYEE';
-    
+    let sql = `SELECT Employee.id AS ID, Employee.first_name AS "First Name", Employee.last_name AS "Last Name", Role.title AS Title, CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name", role.salary AS Salary, department.department_name AS Department FROM EMPLOYEE 
+    JOIN Employee manager ON (Employee.managerID = manager.ID) 
+    INNER JOIN ROLE ON EMPLOYEE.ROLEID = ROLE.ROLEID
+    INNER JOIN Department ON Role.departmentID = department.department_Id;`
+
     await DBquery.execute(sql)
     .then(rows => {
-        console.table(rows);
+        printTable(rows);
         startAgain();
     })
 }
@@ -149,10 +135,6 @@ async function addRoles()  {
             salary: answer.salary,
             departmentid: departments.find(e=>e.department_name === answer.choice).department_id
         }
-        /* await DBquery.addRole(newRole).then(res=>{
-            startAgain();
-        });
-        */
         let sql = `INSERT INTO EmployeeDB.role (title, salary, departmentID) VALUES ('${newRole.title}', ${newRole.salary}, ${newRole.departmentid});`; 
         
         await DBquery.execute(sql)
@@ -160,12 +142,8 @@ async function addRoles()  {
             console.log("ROLE ADDED..");
             startAgain();
         })
-        
     });
-    
 };
-
-
 async function getAllRoles(){
     let sql = 'select * from role';
     
@@ -175,7 +153,6 @@ async function getAllRoles(){
         startAgain();
     })
 };
-
 async function addEmployee()  {
     let roles;
     let manager;
@@ -197,24 +174,20 @@ async function addEmployee()  {
     })
     
     inquirer
-    .prompt([
-        {
+    .prompt([{
             name: 'firstName',
             type: 'input',
             message: 'Please Enter First Name: ',
-        },
-        {
+        },{
             name: 'lastName',
             type: 'input',
             message: 'Please Enter Last Name: ',
-        },
-        {
+        },{
             name: 'roleTitle',
             type: 'list',
             choices: roles.map(e=>e.title),
             message: 'Please Select Role: ',
-        },
-        {
+        },{
             name: 'ManagerName',
             type: 'list',
             choices: manager.map(e=>e.ManagerName),
@@ -271,7 +244,6 @@ async function getTotalBudgetByDepartment() {
 
 async function getAllEmployeesByManager()  {
     let manager;
-    
     let sql = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
     
     await DBquery.execute(sql)
@@ -300,7 +272,6 @@ async function getAllEmployeesByManager()  {
             startAgain();
         });
     });
-    
 };
 
 async function getAllEmployeesByDepartment()  {
@@ -359,11 +330,8 @@ async function removeEmployee() {
         .then(rows => {
             console.log("Employee Removed");
             startAgain();
-            
         }) ;
-        
     });
-    
 }
 async function  updateEmployeeRole() {
     let employee;
@@ -375,9 +343,7 @@ async function  updateEmployeeRole() {
     .then(rows => {
         employee = rows;
     }) 
-    
     let sqlRoles = 'SELECT * from Role';
-    
     await DBquery.execute(sqlRoles)
     .then(rows => {
         roles = rows;
@@ -460,11 +426,7 @@ async function updateDepartment() {
     .then(rows => {
         department = rows;
     });
-    
-    /* await DBquery.getAllDepartments().then(res=>{
-        departmentName = res.map(e=>e.department_name);
-        department = res;
-    });*/
+   
     inquirer
     .prompt([
         {
@@ -489,7 +451,6 @@ async function updateDepartment() {
         });
     });
 }
-
 async function deleteRole()  {
     let roles;
     let sql = 'SELECT * FROM ROLE';
@@ -526,9 +487,6 @@ async function deleteRole()  {
     });
     
 };
-
-start();
-
 
 
 

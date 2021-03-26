@@ -71,3 +71,12 @@ on role.departmentid = department.department_id
  /* Delete ROLE */
  delete from role where roleID = 2;
 
+ /* VIEW ALL EMPLOYEES */
+ SELECT Employee.id AS ID, Employee.first_name AS "First Name", Employee.last_name AS "Last Name", Role.title AS Title, CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager Name', role.salary AS Salary, department.department_name AS Department FROM EMPLOYEE 
+JOIN Employee manager
+ON (Employee.managerID = manager.ID)
+INNER JOIN ROLE 
+ON EMPLOYEE.ROLEID = ROLE.ROLEID
+INNER JOIN Department
+ON Role.departmentID = department.department_Id;
+
