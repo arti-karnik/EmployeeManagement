@@ -9,44 +9,44 @@ var db = require('./database/connect');
 const role = require('./class/role');
 const department = require('./class/department');
 var choice = 
-["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name", "Delete Department",  "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
+["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name",   "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 
 const startAgain = () => {
     inquirer.prompt([ 
-     {
-         name: "YESorNo",
-         type: "list",
-         message: "Do you want to start again?",
-         choices: ["YES", "NO"]
-     }
-     ])
+        {
+            name: "YESorNo",
+            type: "list",
+            message: "Do you want to start again?",
+            choices: ["YES", "NO"]
+        }
+    ])
     .then(function(answer){
-     console.log(choice);
+        console.log(choice);
         if (answer.YESorNo == "YES") {
             start(); 
         }    
-         else {
+        else {
             connection.end();
-         }
+        }
     }); 
- };
+};
 
 const start = () => {
-   inquirer.prompt([ 
-    {
-        name: "choice",
-        type: "list",
-        message: "Please Select option",
-        choices: choice
-    }
+    inquirer.prompt([ 
+        {
+            name: "choice",
+            type: "list",
+            message: "Please Select option",
+            choices: choice
+        }
     ])
-   .then(function(answer){
-    console.log(choice);
-       if (answer.choice == "View All Employees") {
+    .then(function(answer){
+        console.log(choice);
+        if (answer.choice == "View All Employees") {
             getAllEmployees();
-       } else if (answer.choice == "View All Employee by Department"){
+        } else if (answer.choice == "View All Employee by Department"){
             getAllEmployeesByDepartment();
-       } else if (answer.choice == "View All Employee by Manager") {
+        } else if (answer.choice == "View All Employee by Manager") {
             getAllEmployeesByManager();
         }else if (answer.choice == "View All Roles") {
             getAllRoles();
@@ -64,20 +64,16 @@ const start = () => {
             addDepartment();
         }else if (answer.choice == "Update Department Name"){
             updateDepartment();
-        }else if (answer.choice == "Delete Department"){
-            
-        } else if (answer.choice == "Add Roles"){
+        }else if (answer.choice == "Add Roles"){
             addRoles();
-            
         } else if (answer.choice == "Delete Role"){
             deleteRole();
         }else if (answer.choice == "View the total utilized budget of a department"){
             getTotalBudgetByDepartment();
-            
         } else {
             connection.end();
         }
-   }); 
+    }); 
 };
 
 const addDepartment = () => {
@@ -86,53 +82,52 @@ const addDepartment = () => {
         type: "input",
         message: "Please Enter Department Name: "
     }
-    ])
-   .then(function(answer){
+])
+.then(function(answer){
     console.log('Insert new Department.. \n');
+    
     const query = connection.query('INSERT INTO EmployeeDB.department (department_name) VALUES (?)',
-      [answer.departmentName],
-      (err, res) => {
+    [answer.departmentName],
+    (err, res) => {
         if (err) throw err;
-            console.log(`DEPARTMENT ADDED !\n`);
-            startAgain();
-      }
+        console.log(`DEPARTMENT ADDED !\n`);
+        startAgain();
+    }
     );
-  
+    
     // logs the actual query being run
     console.log(query.sql);
-    }); 
+}); 
 };
 
 async function getAllDepartment() {
-
-    await DBquery.getAllDepartments().then(res=>{
-        console.table(res);
+    await DBquery.execute('SELECT * FROM DEPARTMENT')
+    .then(rows => {
+        console.table(rows);
         startAgain();
-    });
+    })
 }
 async function getAllEmployees() {
-
-    await DBquery.getAllEmployees().then(res=>{
-        console.table(res);
+    let sql = 'SELECT * FROM EMPLOYEE';
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        console.table(rows);
         startAgain();
-    });
+    })
 }
-
-
 async function addRoles()  {
-
     let departments;
-    let departmentNames;
-    await DBquery.getAllDepartments().then(res=>{
-        departmentNames = res.map(e=>e.department_name);
-        departments = res;
-    });
+    await DBquery.execute('SELECT * FROM DEPARTMENT')
+    .then(rows => {
+        departments = rows;
+    })
     inquirer
-        .prompt([
+    .prompt([
         {
-                name: 'title',
-                type: 'input',
-                message: 'Please Enter Role Title: ',
+            name: 'title',
+            type: 'input',
+            message: 'Please Enter Role Title: ',
         },
         {
             name: 'salary',
@@ -142,58 +137,67 @@ async function addRoles()  {
         {
             name: 'choice',
             type: 'rawlist',
-            choices: departmentNames,
+            choices: departments.map(e=>e.department_name),
             message: 'Please Select Department: ',
         }
-        ])
-        .then(async (answer) => {
-            console.log(departments.find(e=>e.department_name === answer.choice));
-
-            let newRole = {
-                title: answer.title,
-                salary: answer.salary,
-                departmentid: departments.find(e=>e.department_name === answer.choice).department_id
-            }
-            await DBquery.addRole(newRole).then(res=>{
-                startAgain();
-            });
-
+    ])
+    .then(async (answer) => {
+        console.log(departments.find(e=>e.department_name === answer.choice));
+        
+        let newRole = {
+            title: answer.title,
+            salary: answer.salary,
+            departmentid: departments.find(e=>e.department_name === answer.choice).department_id
+        }
+        /* await DBquery.addRole(newRole).then(res=>{
+            startAgain();
         });
- 
+        */
+        let sql = `INSERT INTO EmployeeDB.role (title, salary, departmentID) VALUES ('${newRole.title}', ${newRole.salary}, ${newRole.departmentid});`; 
+        
+        await DBquery.execute(sql)
+        .then(rows => {
+            console.log("ROLE ADDED..");
+            startAgain();
+        })
+        
+    });
+    
 };
 
 
 async function getAllRoles(){
-    await DBquery.getAllRoles().then(res=>{
-        console.table(res);
+    let sql = 'select * from role';
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        console.table(rows);
         startAgain();
-    });
+    })
 };
 
 async function addEmployee()  {
-
     let roles;
-    let rolesName;
     let manager;
-    let managerNames;
-
-    await DBquery.getAllRoles().then(res=>{
-        rolesName = res.map(e=>e.title);
-        roles = res;
-    });
-    await DBquery.getAllManagerName().then(res=>{
-        console.log(res);
-
-        if (res.length > 0 ) {
-            managerNames = res.map(e=>e.ManagerName);
-            manager = res;
-        } else {
-            manager = ["None"];
-            managerNames = ["None"];
-        }
-    });
+    
+    let sqlRoles = 'select * from role';
+    let sqlManger = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
+    
+    await DBquery.execute(sqlRoles)
+    .then(rows => {
+        roles = rows;
+    })
+    await DBquery.execute(sqlManger)
+    .then(rows => {
+        manager = rows;
+        manager.push({
+            id: "NULL",
+            ManagerName: "NONE"
+        })
+    })
+    
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'firstName',
             type: 'input',
@@ -207,350 +211,323 @@ async function addEmployee()  {
         {
             name: 'roleTitle',
             type: 'list',
-            choices: rolesName,
+            choices: roles.map(e=>e.title),
             message: 'Please Select Role: ',
         },
         {
             name: 'ManagerName',
             type: 'list',
-            choices: managerNames,
+            choices: manager.map(e=>e.ManagerName),
             message: 'Please Select Manager: ',
         }
-        ])
-        .then(async (answer) => {
-            let newEmployee = {
-                first_name: answer.firstName,
-                last_name: answer.lastName,
-                roleId: roles.find(e=>e.title === answer.roleTitle).roleID,
-                manageriD: manager.find(e=>e.ManagerName === answer.ManagerName).id
-            }
-           console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
-           console.log(roles.find(e=>e.title === answer.roleTitle).roleID);
-            console.log(newEmployee);
+    ])
+    .then(async (answer) => {
+        let newEmployee = {
+            first_name: answer.firstName,
+            last_name: answer.lastName,
+            roleId: roles.find(e=>e.title === answer.roleTitle).roleID,
+            manageriD: manager.find(e=>e.ManagerName === answer.ManagerName).id
+        }
+        let sql = `INSERT INTO EmployeeDB.employee (first_name,last_name,roleID, managerID) VALUES ('${newEmployee.first_name}', '${newEmployee.last_name}', ${newEmployee.roleId}, ${newEmployee.manageriD});`; 
 
-            await DBquery.addEmployee(newEmployee)
-                .then(res=>{
-                    console.log("EMPLOYEE INSERTED");
-                    startAgain();
-                });
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.log("EMPLOYEE INSERTED");
+            startAgain();
         });
- 
+    });
+    
 };
 
 async function getTotalBudgetByDepartment() {
-let departmentNames, departments;
-
-    await DBquery.getAllDepartments().then(res=>{
-        departmentNames = res.map(e=>e.department_name);
-        departments = res;
-    });
-
+    let departments;
+    let sql = 'SELECT * from Department';
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        departments = rows;
+    }) ;
+    
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'department',
             type: 'list',
-            choices: departmentNames,
+            choices: departments.map(e=>e.department_name),
             message: 'Please Select Department: ',
         }
-        ])
-        .then(async (answer) => {
-           let deptID = departments.find(e=>e.department_name === answer.department).department_id;
+    ])
+    .then(async (answer) => {
+        let deptID = departments.find(e=>e.department_name === answer.department).department_id;
+        let sql = `SELECT SUM(salary) AS 'Total Budget : ${answer.department}' FROM employee LEFT JOIN role ON employee.roleid=role.roleid  WHERE role.departmentid = ${deptID};`;
 
-           await DBquery.getTotalSalaryByDepartment(deptID,answer.department)
-           .then(res=>{
-               console.table(res);
-               startAgain();
-           });
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.table(res);
+            startAgain();
         });
+    });
 }
 
 async function getAllEmployeesByManager()  {
-     let manager;
-    let managerNames;
-
-    await DBquery.getAllManagerName().then(res=>{
-        managerNames = res.map(e=>e.ManagerName);
-        manager = res;
-    });
+    let manager;
+    
+    let sql = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        manager = rows;
+    })
+    
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'ManagerName',
             type: 'list',
-            choices: managerNames,
+            choices: manager.map(e=>e.ManagerName),
             message: 'Please Select Manager: ',
         }
-        ])
-        .then(async (answer) => {
-            
-           console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
-            let managerId = manager.find(e=>e.ManagerName === answer.ManagerName).id;
+    ])
+    .then(async (answer) => {
+        
+        console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
+        let managerId = manager.find(e=>e.ManagerName === answer.ManagerName).id;
+        let sql = `select employee.first_name, employee.last_name, role.salary, role.title, department.department_name from Employee INNER join role  ON employee.roleid = role.roleid INNER join department  on role.departmentid = department.department_id where managerid = ${managerId};`;
 
-            await DBquery.getEmployeeByManger(managerId)
-                .then(res=>{
-                    console.table(res);
-                    startAgain();
-                });
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.table(res);
+            startAgain();
         });
- 
+    });
+    
 };
 
 async function getAllEmployeesByDepartment()  {
-    let departments;
-    let departmentNames;
-    await DBquery.getAllDepartments().then(res=>{
-        departmentNames = res.map(e=>e.department_name);
-        departments = res;
-    });
-   inquirer
-       .prompt([
-       {
-           name: 'departmentName',
-           type: 'list',
-           choices: departmentNames,
-           message: 'Please Select Department: ',
-       }
-       ])
-       .then(async (answer) => {
-           
-            console.log(departments.find(e=>e.department_name === answer.departmentName).department_id);
-            let departmentId = departments.find(e=>e.department_name === answer.departmentName).department_id;
+    let sql = 'SELECT * from Department';
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        departments = rows;
+    })  
+    
+    inquirer
+    .prompt([
+        {
+            name: 'departmentName',
+            type: 'list',
+            choices: departments.map(e=>e.department_name),
+            message: 'Please Select Department: ',
+        }
+    ])
+    .then(async (answer) => {
+        
+        console.log(departments.find(e=>e.department_name === answer.departmentName).department_id);
+        let departmentId = departments.find(e=>e.department_name === answer.departmentName).department_id;
+        let sql = `SELECT employee.first_name AS 'First Name' , employee.last_name AS 'Last Name', role.salary AS Salary, role.title, department.department_name FROM employee INNER JOIN role ON employee.roleid = role.roleid INNER JOIN department on role.departmentid = department.department_id where department.department_id = ${departmentId};`;
 
-           await DBquery.getEmployeeByDepartment(departmentId)
-               .then(res=>{
-                   console.table(res);
-                   startAgain();
-               });
-       });
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.table(res);
+            startAgain();
+        });
+    });
 };
 
 async function removeEmployee() {
-    let employee, employeeName;
-
-    await DBquery.getAllEmployeesNames().then(res=>{
-        employeeName = res.map(e=>e.name);
-        employee = res;
-    });
+    let employee;
+    let sql = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        employee = rows;
+    })  
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'EmployeeName',
             type: 'list',
-            choices: employeeName,
+            choices: employee.map(e=>e.name),
             message: 'Please Select Employee: ',
         }
-        ])
-        .then(async (answer) => {
-            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
-
-            await DBquery.removeEmployee(EmployeeId)
-                .then(res=>{
-                    console.log("EMPLOYEE DELETED!!");
-                    startAgain();
-                });
-        });
-
+    ])
+    .then(async (answer) => {
+        let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+        
+        let sql = 'DELETE from Employee WHERE ID = ' + EmployeeId;
+        await DBquery.execute(sql)
+        .then(rows => {
+            console.log("Employee Removed");
+            startAgain();
+            
+        }) ;
+        
+    });
+    
 }
 async function  updateEmployeeRole() {
-    let employee, employeeName;
-    let rolesName, roles;
-
-    await DBquery.getAllRoles().then(res=>{
-        rolesName = res.map(e=>e.title);
-        roles = res;
-    });
-    await DBquery.getAllEmployeesNames().then(res=>{
-        employeeName = res.map(e=>e.name);
-        employee = res;
-    });
+    let employee;
+    let roles;
+    
+    let sql = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
+    
+    await DBquery.execute(sql)
+    .then(rows => {
+        employee = rows;
+    }) 
+    
+    let sqlRoles = 'SELECT * from Role';
+    
+    await DBquery.execute(sqlRoles)
+    .then(rows => {
+        roles = rows;
+    }) 
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'EmployeeName',
             type: 'list',
-            choices: employeeName,
+            choices: employee.map(e=>e.name),
             message: 'Please Select Employee: ',
         }, {
             name: 'newRole',
             type: 'list',
-            choices: rolesName,
+            choices: roles.map(e=>e.title),
             message: 'Please Select New Role: ',
         }
-        ])
-        .then(async (answer) => {
-            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
-            let roleId = roles.find(e=>e.title === answer.newRole).roleID;
-
-            await DBquery.updateEmployeeRole(EmployeeId, roleId)
-                .then(res=>{
-                    console.log("EMPLOYEE ROLE UPDATED!!");
-                    startAgain();
-                });
+    ])
+    .then(async (answer) => {
+        let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+        let roleId = roles.find(e=>e.title === answer.newRole).roleID;
+        
+        let sql = `UPDATE EmployeeDB.employee SET roleID = ${roleId} WHERE id = ${EmployeeId};`;
+        
+        await DBquery.execute(sql)
+        .then(rows => {
+            console.log("EMPLOYEE ROLE UPDATED!!");
+            startAgain();
+            
         });
-
-    
+    });
 }
 async function  updateEmployeeManager() {
-    let employee, employeeName;
-    let managerName, manager;
-
-    await DBquery.getAllManagerName().then(res=>{
-        managerName = res.map(e=>e.ManagerName);
-        manager = res;
+    let employee;
+    let manager;
+    
+    let sql = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
+    await DBquery.execute(sql)
+    .then(rows => {
+        manager = rows;
     });
-    await DBquery.getAllEmployeesNames().then(res=>{
-        employeeName = res.map(e=>e.name);
-        employee = res;
+    let sqlEmp = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
+    await DBquery.execute(sqlEmp)
+    .then(rows => {
+        employee = rows;
     });
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'EmployeeName',
             type: 'list',
-            choices: employeeName,
+            choices: employee.map(e=>e.name),
             message: 'Please Select Employee: ',
         }, {
             name: 'newManager',
             type: 'list',
-            choices: managerName,
+            choices: manager.map(e=>e.ManagerName),
             message: 'Please Select New Manager: ',
         }
-        ])
-        .then(async (answer) => {
-            let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
-            let managerId = manager.find(e=>e.ManagerName === answer.newManager).id;
-            console.log(managerId, EmployeeId);
-            console.log(manager, employee);
+    ])
+    .then(async (answer) => {
+        let EmployeeId = employee.find(e=>e.name === answer.EmployeeName).ID;
+        let managerId = manager.find(e=>e.ManagerName === answer.newManager).id;
+        let sql = `UPDATE EmployeeDB.employee SET managerID = ${managerId} WHERE id = ${EmployeeId};`;
 
-            await DBquery.updateEmployeeManager(EmployeeId, managerId)
-                .then(res=>{
-                    console.log("EMPLOYEE MANAGER UPDATED!!");
-                    startAgain();
-                });
+        await DBquery.execute(sql)
+        .then(res=>{
+            console.log("EMPLOYEE MANAGER UPDATED!!");
+            startAgain();
         });
-
+    });
+    
     
 }
 async function updateDepartment() {
-    let department, departmentName;
-
-    await DBquery.getAllDepartments().then(res=>{
+    let department;
+    
+    let sql = `SELECT * FROM DEPARTMENT`;
+    await DBquery.execute(sql)
+    .then(rows => {
+        department = rows;
+    });
+    
+    /* await DBquery.getAllDepartments().then(res=>{
         departmentName = res.map(e=>e.department_name);
         department = res;
-    });
+    });*/
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'departmentName',
             type: 'list',
-            choices: departmentName,
+            choices: department.map(e=>e.department_name),
             message: 'Please Select Department: ',
         }, {
             name: 'NewDepartmentName',
             type: 'input',
             message: 'Please Enter new name for this department: ',
         }
-        ])
-        .then(async (answer) => {
-            let deptId = department.find(e=>e.department_name === answer.departmentName).department_id;
-            console.log(department);
-            console.log(deptId);
-
-            await DBquery.updateDepartment(deptId, answer.NewDepartmentName)
-                .then(res=>{
-                    console.log("DEPARTMENT UPDATED!!");
-                    startAgain();
-                });
+    ])
+    .then(async (answer) => {
+        let deptId = department.find(e=>e.department_name === answer.departmentName).department_id;
+        let sql = `UPDATE EmployeeDB.department SET department_name = '${answer.NewDepartmentName}' WHERE department_id = ${deptId};`;
+        
+        await DBquery.execute(sql)
+        .then(rows => {
+            console.log("DEPARTMENT UPDATED!!");
+            startAgain();
         });
-
+    });
 }
 
 async function deleteRole()  {
-
     let roles;
-    let rolesName;
-    await DBquery.getAllRoles().then(res=>{
-        rolesName = res.map(e=>e.title);
-        roles = res;
+    let sql = 'SELECT * FROM ROLE';
+    
+    await DBquery.execute(sql)
+    .then(rows=>{
+        roles = rows;
     });
-    console.log(rolesName);
     inquirer
-        .prompt([
+    .prompt([
         {
             name: 'role',
             type: 'list',
             message: 'Please Select Role ',
-            choices: rolesName
+            choices: roles.map(e=>e.title)
         }
-        ])
-        .then(async (answer) => {
-            console.log(roles);
-
-            confirm({
-                question: 'Are you sure, you want to delete this Role? All associated employees and department will be delete. Press Y to confirm or N to Cancel', // 'Are you sure?' is default
-                default: false 
-              })
-              .then(async function confirmed() {
-                let roleid = roles.find(e=>e.title === answer.role).roleID;
-                console.log(roleid);
-                await DBquery.deleteRole(roleid)
-                .then(res=>{
-                    console.log("ROLE DELETED!!");
-                    startAgain();
-                });
-              }, function cancelled() {
-              });
+    ])
+    .then(async (answer) => {
+        confirm({
+            question: 'Are you sure, you want to delete this Role? All associated employees and department will be delete. Press Y to confirm or N to Cancel', // 'Are you sure?' is default
+            default: false 
+        })
+        .then(async function confirmed() {
+            let roleid = roles.find(e=>e.title === answer.role).roleID;
+            let sql = `delete from role where roleID = ${roleid};`;
+            
+            await DBquery.execute(sql)
+            .then(rows=>{
+                console.log("ROLE DELETED!!");
+                startAgain();
+            });
+        }, function cancelled() {
         });
- 
-};
-
-/*
-const getAllEmployees = db.query('SELECT * FROM employee', function(err, result) {
-    if (err) throw err;
-    console.log(result);
-});
-const getAllDepartment = db.query('SELECT * FROM department', function(err, result) {
-    if (err) throw err;
-    console.log(result);
-});
-const getAllRoles = db.query('SELECT * FROM role', function(err, result) {
-    if (err) throw err;
-    console.log(result);
-});
-
-
-const getEmployeeByManager = (managerId) => {
-    db.query('SELECT first_name from employee where manageriD = ?', [managerId], function(err, result) {
-        if (err) throw err;
-        console.log(result);
-    })
-};
-
-const updateRole = (EmpId, newRoleId) => {
-    db.query('UPDATE employee SET roleId = ? WHERE id= ?', [newRoleId, EmpId], function(err, result){
-        if (err) throw err;
-        console.log("Employee Updated!!!");
     });
-}
-*/
-
-const addDepartmen1t = (departmentName) => {
-    console.log('Insert new Role.. \n');
-    const query = connection.query('INSERT INTO EmployeeDB.department (department_name) VALUES (?)',
-      [departmentName],
-      (err, res) => {
-        if (err) throw err;
-        console.log(`product inserted!\n`);
-      }
-    );
-  
-    // logs the actual query being run
-    console.log(query.sql);
-  }; 
+    
+};
 
 start();
-
 
 
 

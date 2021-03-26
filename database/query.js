@@ -4,6 +4,15 @@ const connection = require('./connect');
 /* sQl connection query */
 class query {
 
+    async execute(sql) {
+        return new Promise((resolve, reject) => {
+            connection.query(sql, (err, result) => {
+                if (err) throw err;
+                resolve(result);
+            });
+        });
+    }
+    /*
     async getAllManagerName(){
         return new Promise((resolve,reject)=>{ 
             let query = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
@@ -183,6 +192,6 @@ class query {
                 resolve(res);
             });  
         });
-    }
+    }*/
 }
 module.exports = query;
