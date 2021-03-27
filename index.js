@@ -1,22 +1,37 @@
 const connection = require('./database/connect');
-var figlet = require('figlet');
-
-
-var db = require('./database/connect');
 const inquirer = require("inquirer");
 const query = require("./database/query");
 const DBquery = new query();
 const confirm = require('inquirer-confirm')
 const cTable = require('console.table');
 const { printTable } = require('console-table-printer');
+var figlet = require('figlet');
+const chalk = require('chalk');
 
-var choice = 
-["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name",   "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
-
-const { text } = require('figlet');
+var db = require('./database/connect');
+var choice = ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name",   "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 setTimeout(function() { start(); }, 500);
-
 console.log(figlet.textSync("Employee Tracker"));
+
+const startAgain = () => {
+    inquirer.prompt([ 
+        {
+            name: "YESorNo",
+            type: "list",
+            message: "Do you want to start again?",
+            choices: ["YES", "NO"]
+        }
+    ])
+    .then(function(answer){
+        console.log(choice);
+        if (answer.YESorNo == "YES") {
+            start(); 
+        }    
+        else {
+            connection.end();
+        }
+    }); 
+};
 
 const start = () => {
     inquirer.prompt([ 
@@ -86,10 +101,18 @@ async function addDepartment() {
 async function getAllDepartment() {
     await DBquery.execute('SELECT * FROM DEPARTMENT')
     .then(rows => {
-        console.table(rows);
-        startAgain();
+        showTable("VIEW ALL EMPLOYEES BY DEPARTMENT", rows);
     })
 }
+const showTable = (title, rows) => {
+    if (rows.length > 0){
+        console.log(chalk.white('\n******************** ' + title +'. *************************\n'));
+        printTable(rows);        
+    } else {
+        console.log(chalk.white('\n******************** NO RECORDS AVAILABLE. *************************\n'));
+    }
+    startAgain();
+};
 async function getAllEmployees() {
     let sql = `SELECT Employee.id AS ID, Employee.first_name AS "First Name", Employee.last_name AS "Last Name", Role.title AS Title, CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name", role.salary AS Salary, department.department_name AS Department FROM EMPLOYEE 
     JOIN Employee manager ON (Employee.managerID = manager.ID) 
@@ -98,9 +121,8 @@ async function getAllEmployees() {
 
     await DBquery.execute(sql)
     .then(rows => {
-        printTable(rows);
-        startAgain();
-    })
+        showTable('VIEW EMPLOYEE', rows);
+     })
 }
 async function addRoles()  {
     let departments;
@@ -149,8 +171,7 @@ async function getAllRoles(){
     
     await DBquery.execute(sql)
     .then(rows => {
-        console.table(rows);
-        startAgain();
+        showTable('VIEW ALL ROLES', rows);
     })
 };
 async function addEmployee()  {
@@ -235,22 +256,24 @@ async function getTotalBudgetByDepartment() {
         let sql = `SELECT SUM(salary) AS 'Total Budget : ${answer.department}' FROM employee LEFT JOIN role ON employee.roleid=role.roleid  WHERE role.departmentid = ${deptID};`;
 
         await DBquery.execute(sql)
-        .then(res=>{
-            console.table(res);
-            startAgain();
+        .then(rows=>{
+            showTable('Total Budget By Department', rows);
         });
     });
 }
 
 async function getAllEmployeesByManager()  {
-    let manager;
+    let manager= [];
     let sql = `SELECT id, CONCAT(first_name," " ,last_name) as ManagerName from Employee`;
     
     await DBquery.execute(sql)
     .then(rows => {
         manager = rows;
+        manager.push ({
+            id: "NULL",
+            ManagerName: "NONE"
+        });
     })
-    
     inquirer
     .prompt([
         {
@@ -267,9 +290,8 @@ async function getAllEmployeesByManager()  {
         let sql = `select employee.first_name, employee.last_name, role.salary, role.title, department.department_name from Employee INNER join role  ON employee.roleid = role.roleid INNER join department  on role.departmentid = department.department_id where managerid = ${managerId};`;
 
         await DBquery.execute(sql)
-        .then(res=>{
-            console.table(res);
-            startAgain();
+        .then(rows=>{
+            showTable('VIEW ALL EMPLOYEES BY MANAGER', rows);
         });
     });
 };
@@ -292,15 +314,12 @@ async function getAllEmployeesByDepartment()  {
         }
     ])
     .then(async (answer) => {
-        
-        console.log(departments.find(e=>e.department_name === answer.departmentName).department_id);
         let departmentId = departments.find(e=>e.department_name === answer.departmentName).department_id;
         let sql = `SELECT employee.first_name AS 'First Name' , employee.last_name AS 'Last Name', role.salary AS Salary, role.title, department.department_name FROM employee INNER JOIN role ON employee.roleid = role.roleid INNER JOIN department on role.departmentid = department.department_id where department.department_id = ${departmentId};`;
 
         await DBquery.execute(sql)
-        .then(res=>{
-            console.table(res);
-            startAgain();
+        .then(rows => {
+            showTable('VIEW ALL EMPLOYEES BY DEPARTMENT', rows);
         });
     });
 };
@@ -333,20 +352,27 @@ async function removeEmployee() {
         }) ;
     });
 }
+function checkForEmptyRecords(params, rows) {
+    if (rows.length == 0) {
+        console.log("NO "+ params +"ADDED, 'PLEASE ADD AND RETURN BACK..'");
+        process.exit(0);
+    }
+}
 async function  updateEmployeeRole() {
     let employee;
     let roles;
-    
     let sql = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
     
     await DBquery.execute(sql)
     .then(rows => {
         employee = rows;
+        checkForEmptyRecords("Employee", rows);
     }) 
     let sqlRoles = 'SELECT * from Role';
     await DBquery.execute(sqlRoles)
     .then(rows => {
         roles = rows;
+        checkForEmptyRecords("Role", rows);
     }) 
     inquirer
     .prompt([
@@ -375,6 +401,8 @@ async function  updateEmployeeRole() {
             
         });
     });
+
+    console.log("END");
 }
 async function  updateEmployeeManager() {
     let employee;
@@ -384,11 +412,16 @@ async function  updateEmployeeManager() {
     await DBquery.execute(sql)
     .then(rows => {
         manager = rows;
+        manager.push [{
+            id: "NULL",
+            ManagerName: "NONE"
+        }]
     });
     let sqlEmp = "SELECT ID, CONCAT( first_name, ' ', last_name) AS name FROM EMPLOYEE;";
     await DBquery.execute(sqlEmp)
     .then(rows => {
         employee = rows;
+        checkForEmptyRecords("Employee", rows);
     });
     inquirer
     .prompt([
@@ -425,6 +458,8 @@ async function updateDepartment() {
     await DBquery.execute(sql)
     .then(rows => {
         department = rows;
+        checkForEmptyRecords("Department", rows);
+
     });
    
     inquirer
@@ -485,7 +520,6 @@ async function deleteRole()  {
         }, function cancelled() {
         });
     });
-    
 };
 
 
