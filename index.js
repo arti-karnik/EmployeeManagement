@@ -8,6 +8,7 @@ const { printTable } = require('console-table-printer');
 var figlet = require('figlet');
 const chalk = require('chalk');
 
+
 var db = require('./database/connect');
 var choice = ["View All Employees", "View All Employee by Department", "View All Employee by Manager","View All Roles", "View All Department", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager",  "Add Department", "Update Department Name",   "Add Roles", "Delete Role", "View the total utilized budget of a department", "Exit"]
 setTimeout(function() { start(); }, 500);
@@ -184,6 +185,7 @@ async function addEmployee()  {
     await DBquery.execute(sqlRoles)
     .then(rows => {
         roles = rows;
+        checkForEmptyRecords("Role", rows);
     })
     await DBquery.execute(sqlManger)
     .then(rows => {
@@ -240,6 +242,8 @@ async function getTotalBudgetByDepartment() {
     await DBquery.execute(sql)
     .then(rows => {
         departments = rows;
+        checkForEmptyRecords("Department", rows);
+
     }) ;
     
     inquirer
@@ -302,6 +306,7 @@ async function getAllEmployeesByDepartment()  {
     await DBquery.execute(sql)
     .then(rows => {
         departments = rows;
+        checkForEmptyRecords("Department", rows);
     })  
     
     inquirer
@@ -331,6 +336,8 @@ async function removeEmployee() {
     await DBquery.execute(sql)
     .then(rows => {
         employee = rows;
+        checkForEmptyRecords("Employee", rows);
+
     })  
     inquirer
     .prompt([
@@ -521,6 +528,7 @@ async function deleteRole()  {
         });
     });
 };
+
 
 
 
