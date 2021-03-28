@@ -16,10 +16,11 @@
 
 
 ## Summary
-Application to keep track of tasks/ to-do items. It will allow users to write, edit, delete and save notes. Notes are saved in server and would be retrieve when user open application next time. 
+CLI application to architect and build a solution for managing a company's employees using node, inquirer, and MySQL.
+
 
 ## Description
-Create an application called 'Take my Notes' that can be used to write and save notes. This application will use an Express.js back end and will save and retrieve note data from a JSON file. The application’s front end has been created with hTML,CSS, Bootstrap. Application is deployed to Heroku.
+Able to view and manage the departments, roles, and employees in a company
 
 ## Pre-requisite
 Install NodeJS 
