@@ -7,14 +7,8 @@ INSERT INTO department (department_name) VALUES ('LEGAL');
 INSERT INTO department (department_name) VALUES ('SALES');
 
 
-INSERT INTO role (title, salary, departmentID) VALUES ('SALES TRAINEE', 2000.00, 6);
-INSERT INTO role (title, salary, departmentID) VALUES ('SOFTWARE ENGINEER', 10000.00, 3);
-INSERT INTO role (title, salary, departmentID) VALUES ('SOFTWARE MANAGER', 15000.00, 3);
-INSERT INTO role (title, salary, departmentID) VALUES ('SALES MANAGER', 25000.00, 6);
-INSERT INTO role (title, salary, departmentID) VALUES ('ACCOUNT MANAGER', 22000.00, 1);
-INSERT INTO role (title, salary, departmentID) VALUES ('ACCOUNTANT', 8000.00, 1);
-INSERT INTO role (title, salary, departmentID) VALUES ('LEGAL ASSOCIATE', 6000.00, 5);
-INSERT INTO role (title, salary, departmentID) VALUES ('LEGAL TEAM LEAD', 18000.00, 5);
+INSERT INTO role (title, salary, departmentID) VALUES ('SALES TRAINEE', 2000.00, 1);
+INSERT INTO role (title, salary, departmentID) VALUES ('LEGAL TEAM LEAD', 18000.00, 2);
 
 
 INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('TAMMER', 'GALAL', 1, NULL);
@@ -27,10 +21,11 @@ INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('JANVI',
 INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('ANNA', 'REDDY', 1, 3);
 INSERT INTO employee (first_name, last_name, roleID, managerID) VALUES ('ABHIJEET', 'MOKAKSHI', 1, 4);
 
+/* UPDATE EMPLOYEE ROLE */
 UPDATE employee SET roleId = 2 WHERE id= 1;
 
 /* VIEW ALL DEPARTMENT */
-SELECT * FROM DEPARTMENT
+SELECT * FROM DEPARTMENT;
 
 /* VIEW ALL ROLES */
 
