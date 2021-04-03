@@ -113,8 +113,7 @@ const showTable = (title, rows) => {
     startAgain();
 };
 async function getAllEmployees() {
-    let sql = `SELECT Employee.id AS ID, Employee.first_name AS "First Name", Employee.last_name AS "Last Name", Role.title AS Title, CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name", role.salary AS Salary, department.department_name AS Department FROM EMPLOYEE 
-    JOIN Employee manager ON (Employee.managerID = manager.ID) 
+    let sql = `SELECT Employee.id AS ID, Employee.first_name AS "First Name", Employee.last_name AS "Last Name", Role.title AS Title, role.salary AS Salary, department.department_name AS Department FROM EMPLOYEE 
     INNER JOIN ROLE ON EMPLOYEE.ROLEID = ROLE.ROLEID
     INNER JOIN Department ON Role.departmentID = department.department_Id;`
 
@@ -520,6 +519,8 @@ async function deleteRole()  {
                 startAgain();
             });
         }, function cancelled() {
+            console.log("User choose NO, Operation cancelled.");
+            startAgain();
         });
     });
 };
