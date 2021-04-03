@@ -86,6 +86,8 @@ https://github.com/arti-karnik/EmployeeManagement
 ## Application work-through url
 https://drive.google.com/file/d/1nr8CGv9zd1k976X5j-I-FUJ0HYylCc5i/view
 
+Updated Application walk-through : 
+https://drive.google.com/file/d/1Vsn0PkM7RM4dj7niywbXbjzd3XcmcVgd/view
 
 
 
