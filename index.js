@@ -24,7 +24,6 @@ const startAgain = () => {
         }
     ])
     .then(function(answer){
-        console.log(choice);
         if (answer.YESorNo == "YES") {
             start(); 
         }    
@@ -44,7 +43,6 @@ const start = () => {
         }
     ])
     .then(function(answer){
-        console.log(choice);
         if (answer.choice == "View All Employees") {
             getAllEmployees();
         } else if (answer.choice == "View All Employee by Department"){
@@ -151,7 +149,6 @@ async function addRoles()  {
         }
     ])
     .then(async (answer) => {
-        console.log(departments.find(e=>e.department_name === answer.choice));
         
         let newRole = {
             title: answer.title,
@@ -288,8 +285,6 @@ async function getAllEmployeesByManager()  {
         }
     ])
     .then(async (answer) => {
-        
-        console.log(manager.find(e=>e.ManagerName === answer.ManagerName).id);
         let managerId = manager.find(e=>e.ManagerName === answer.ManagerName).id;
         let sql = `select employee.first_name, employee.last_name, role.salary, role.title, department.department_name from Employee INNER join role  ON employee.roleid = role.roleid INNER join department  on role.departmentid = department.department_id where managerid = ${managerId};`;
 
